@@ -1,36 +1,30 @@
-﻿using CloudFoundry.VisualStudio.Forms;
-using CloudFoundry.VisualStudio.ProjectPush;
-using Microsoft.VisualStudio;
-using Microsoft.VisualStudio.Shell.Interop;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace CloudFoundry.VisualStudio
+﻿namespace CloudFoundry.VisualStudio
 {
-    class PublishXmlEditorFactory : IVsEditorFactory
+    using System;
+    using System.Globalization;
+    using System.IO;
+    using CloudFoundry.VisualStudio.Forms;
+    using CloudFoundry.VisualStudio.ProjectPush;
+    using Microsoft.VisualStudio;
+    using Microsoft.VisualStudio.Shell.Interop;
+
+    internal class PublishXmlEditorFactory : IVsEditorFactory
     {
         public int Close()
         {
             return VSConstants.S_OK;
         }
 
-        public int CreateEditorInstance(uint grfCreateDoc, string pszMkDocument, string pszPhysicalView, IVsHierarchy pvHier, uint itemid, IntPtr punkDocDataExisting, out IntPtr ppunkDocView, out IntPtr ppunkDocData, out string pbstrEditorCaption, out Guid pguidCmdUI, out int pgrfCDW)
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Prevent VS crash")]
+        public int CreateEditorInstance(uint grfCreateDoc, string pszMkDocument, string pszPhysicalView, IVsHierarchy ppvHier, uint itemid, IntPtr punkDocDataExisting, out IntPtr ppunkDocView, out IntPtr ppunkDocData, out string pbstrEditorCaption, out Guid pguidCmdUI, out int pgrfCDW)
         {
-
             ppunkDocData = IntPtr.Zero;
             ppunkDocView = IntPtr.Zero;
             pguidCmdUI = new Guid("41d526d3-6281-42ff-ba9f-e5746623233f");
             pgrfCDW = 0;
-            pbstrEditorCaption = "Cloud Foundry Publish Profile";
+            pbstrEditorCaption = "Stackato Publish Profile";
 
-            object objProj;
-            pvHier.GetProperty(VSConstants.VSITEMID_ROOT, (int)__VSHPROPID.VSHPROPID_ExtObject, out objProj);
-            var project = objProj as EnvDTE.Project;
+            var project = VsUtils.GetSelectedProject();
 
             var fileInfo = new FileInfo(pszMkDocument);
 
@@ -44,27 +38,30 @@ namespace CloudFoundry.VisualStudio
                 return VSConstants.VS_E_UNSUPPORTEDFORMAT;
             }
 
-            if (!fileInfo.Name.ToLowerInvariant().EndsWith(CloudFoundry_VisualStudioPackage.extension))
+            if (!fileInfo.Name.ToUpperInvariant().EndsWith(PushEnvironment.Extension, StringComparison.OrdinalIgnoreCase))
             {
                 return VSConstants.VS_E_UNSUPPORTEDFORMAT;
             }
 
-            AppPackage packageFile = new AppPackage();
+            PublishProfile packageFile;
             try
             {
-                packageFile.LoadFromFile(pszMkDocument);
+                var selectedProject = VsUtils.GetSelectedProject();
+                PushEnvironment environment = new PushEnvironment(selectedProject);
+                environment.ProjectName = project.Name;
+                environment.ProfileFilePath = pszMkDocument;
+
+                packageFile = PublishProfile.Load(environment);
             }
             catch (Exception ex)
             {
-                MessageBoxHelper.DisplayError(string.Format(CultureInfo.InvariantCulture, "Cannot load {0}. File is corrupt.", pszMkDocument));
+                MessageBoxHelper.DisplayError(string.Format(CultureInfo.InvariantCulture, "Cannot load {0}. {1}.", pszMkDocument, ex.Message));
                 Logger.Error("Exception loading package file", ex);
                 return VSConstants.VS_E_INCOMPATIBLEDOCDATA;
             }
 
-            
-            var dialog = new EditDialog(packageFile, project);
-            dialog.ShowDialog();
-
+            var dialog = new PushDialog(packageFile);
+            dialog.ShowModal();
             return VSConstants.S_OK;
         }
 

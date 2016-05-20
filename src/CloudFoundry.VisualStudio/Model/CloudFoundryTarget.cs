@@ -1,19 +1,19 @@
-﻿using CloudFoundry.CloudController.V2.Client;
-using CloudFoundry.CloudController.V2.Client.Data;
-using CloudFoundry.UAA;
-using CloudFoundry.VisualStudio.Forms;
-using CloudFoundry.VisualStudio.TargetStore;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Globalization;
-using System.IdentityModel.Tokens;
-using System.Threading.Tasks;
-
-namespace CloudFoundry.VisualStudio.Model
+﻿namespace CloudFoundry.VisualStudio.Model
 {
-    class CloudFoundryTarget : CloudItem
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.ComponentModel;
+    using System.Globalization;
+    using System.IdentityModel.Tokens;
+    using System.Threading.Tasks;
+    using CloudFoundry.CloudController.V2.Client;
+    using CloudFoundry.CloudController.V2.Client.Data;
+    using CloudFoundry.UAA;
+    using CloudFoundry.VisualStudio.Forms;
+    using CloudFoundry.VisualStudio.TargetStore;
+
+    internal class CloudFoundryTarget : CloudItem
     {
         private readonly CloudTarget target;
 
@@ -30,7 +30,7 @@ namespace CloudFoundry.VisualStudio.Model
             get { return this.target.TargetUrl; }
         }
 
-        [Description("Username of the Cloud Foundry User")]
+        [Description("Username of the Stackato User")]
         public string Username
         {
             get { return this.target.Email; }
@@ -42,7 +42,7 @@ namespace CloudFoundry.VisualStudio.Model
             get { return this.target.Version; }
         }
 
-        [Description("Indicates if the SSL errors are ignored for the Cloud Foundry Target")]
+        [Description("Indicates if the SSL errors are ignored for the Stackato Target")]
         [DisplayName("Ignore SSL errors")]
         public bool IgnoreSSLErrors
         {
@@ -68,6 +68,17 @@ namespace CloudFoundry.VisualStudio.Model
             }
         }
 
+        protected override IEnumerable<CloudItemAction> MenuActions
+        {
+            get
+            {
+                return new CloudItemAction[]
+                {
+                    new CloudItemAction(this, "Remove", Resources.Remove, this.Delete, CloudItemActionContinuation.RefreshParent)
+                };
+            }
+        }
+
         protected override async Task<IEnumerable<CloudItem>> UpdateChildren()
         {
             CloudFoundryClient client = new CloudFoundryClient(this.target.TargetUrl, this.CancellationToken, null, this.target.IgnoreSSLErrors);
@@ -83,17 +94,12 @@ namespace CloudFoundry.VisualStudio.Model
             List<Organization> result = new List<Organization>();
 
             PagedResponseCollection<ListAllOrganizationsResponse> orgs = await client.Organizations.ListAllOrganizations();
-
-            JwtSecurityToken token = new JwtSecurityToken(authenticationContext.Token.AccessToken);
-            Guid userId = new Guid(token.Subject);
-
-            GetUserSummaryResponse userSummary = await client.Users.GetUserSummary(userId);
-
+            
             while (orgs != null && orgs.Properties.TotalResults != 0)
             {
                 foreach (var org in orgs)
                 {
-                    result.Add(new Organization(org, userSummary, client));
+                    result.Add(new Organization(org, client));
                 }
 
                 orgs = await orgs.GetNextPage();
@@ -102,25 +108,13 @@ namespace CloudFoundry.VisualStudio.Model
             return result;
         }
 
-        protected override IEnumerable<CloudItemAction> MenuActions
-        {
-            get
-            {
-                return new CloudItemAction[]
-                {
-                    new CloudItemAction(this, "Remove", Resources.Remove, Delete, CloudItemActionContinuation.RefreshParent)
-                };
-            }
-        }
-
         private async Task Delete()
         {
             var answer = MessageBoxHelper.WarningQuestion(
                 string.Format(
                 CultureInfo.InvariantCulture,
                 "Are you sure you want to delete target '{0}'?",
-                this.target.DisplayName
-                ));
+                this.target.DisplayName));
 
             if (answer == System.Windows.Forms.DialogResult.Yes)
             {

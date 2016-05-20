@@ -1,55 +1,49 @@
-﻿using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Drawing;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Media.Imaging;
-using Microsoft.VisualStudio.Threading;
-using System.Diagnostics;
-
-namespace CloudFoundry.VisualStudio.Model
+﻿namespace CloudFoundry.VisualStudio.Model
 {
+    using System;
+    using System.Collections;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.ComponentModel;
+    using System.Drawing;
+    using System.Linq;
+    using System.Reflection;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using System.Windows.Media.Imaging;
+    using CloudFoundry.CloudController.V2.Client;
+    using Microsoft.VisualStudio.Threading;
+
     internal abstract class CloudItem : INotifyPropertyChanged
     {
-        private readonly CloudItemType _cloudItemType = CloudItemType.Target;
-        private volatile bool _isExpanded = false;
-        private volatile bool _wasRefreshed = false;
-        private readonly AsyncObservableCollection<CloudItem> _children = new AsyncObservableCollection<CloudItem>();
+        private readonly CloudItemType cloudItemType = CloudItemType.Target;
+        private readonly ObservableCollection<CloudItem> children = new ObservableCollection<CloudItem>();
+        private readonly object childRefreshLock = new object();
+        private volatile bool isExpanded = false;
+        private volatile bool wasRefreshed = false;
         private System.Threading.CancellationToken cancellationToken;
         private CloudItem parent = null;
-        private readonly object childRefreshLock = new object();
-
-        protected bool HasRefresh
-        {
-            get
-            {
-                return _cloudItemType != CloudItemType.LoadingPlaceholder &&
-                    _cloudItemType != CloudItemType.App &&
-                    _cloudItemType != CloudItemType.Route &&
-                    _cloudItemType != CloudItemType.Service &&
-                    _cloudItemType != CloudItemType.Error;
-            }
-        }
+        private bool executingBackgroundAction;
+        private bool isEnabled = true;
 
         protected CloudItem(CloudItemType cloudItemType)
         {
-            _cloudItemType = cloudItemType;
+            this.cloudItemType = cloudItemType;
 
             if (this.HasRefresh)
             {
-                _children.Add(new LoadingPlaceholder());
+                this.children.Add(new LoadingPlaceholder());
             }
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
 
         [Browsable(false)]
         public CancellationToken CancellationToken
         {
             get
             {
-                return cancellationToken;
+                return this.cancellationToken;
             }
         }
 
@@ -58,7 +52,7 @@ namespace CloudFoundry.VisualStudio.Model
         {
             get
             {
-                return _cloudItemType;
+                return this.cloudItemType;
             }
         }
 
@@ -67,23 +61,18 @@ namespace CloudFoundry.VisualStudio.Model
         {
             get
             {
-                return _isExpanded;
+                return this.isExpanded;
             }
+
             set
             {
-                _isExpanded = value;
+                this.isExpanded = value;
 
-                if (_isExpanded && !_wasRefreshed)
+                if (this.isExpanded && !this.wasRefreshed)
                 {
-                    RefreshChildren().Forget();
-
+                    this.RefreshChildren().Forget();
                 }
             }
-        }
-
-        private void AttachToParent(CloudItem parent)
-        {
-            this.parent = parent;
         }
 
         [Browsable(false)]
@@ -91,45 +80,8 @@ namespace CloudFoundry.VisualStudio.Model
         {
             get
             {
-                return parent;
+                return this.parent;
             }
-        }
-
-        public async Task RefreshChildren()
-        {
-            this.ExecutingBackgroundAction = true;
-            var populateChildrenTask = this.UpdateChildren();
-            this.cancellationToken = new System.Threading.CancellationToken();
-
-            await populateChildrenTask.ContinueWith((antecedent) =>
-                {
-                    lock (this.childRefreshLock)
-                    {
-                        if (antecedent.IsFaulted)
-                        {
-                            _children.Clear();
-
-                            CloudError error = new CloudError(antecedent.Exception);
-
-                            _children.Add(error);
-                        }
-                        else
-                        {
-                            _children.Clear();
-
-                            foreach (var child in antecedent.Result)
-                            {
-                                _children.Add(child);
-
-                                child.AttachToParent(this);
-                            }
-
-                            _wasRefreshed = true;
-                        }
-
-                        this.ExecutingBackgroundAction = false;
-                    }
-                });
         }
 
         [Browsable(false)]
@@ -137,7 +89,7 @@ namespace CloudFoundry.VisualStudio.Model
         {
             get
             {
-                return Converters.ImageConverter.ConvertBitmapToBitmapImage(IconBitmap);
+                return Converters.ImageConverter.ConvertBitmapToBitmapImage(this.IconBitmap);
             }
         }
 
@@ -148,10 +100,11 @@ namespace CloudFoundry.VisualStudio.Model
             {
                 return this.executingBackgroundAction;
             }
+
             set
             {
                 this.executingBackgroundAction = value;
-                NotifyPropertyChanged("ExecutingBackgroundAction");
+                this.NotifyPropertyChanged("ExecutingBackgroundAction");
             }
         }
 
@@ -161,26 +114,13 @@ namespace CloudFoundry.VisualStudio.Model
             get;
         }
 
-        protected abstract Bitmap IconBitmap
-        {
-            get;
-        }
-
-        protected abstract Task<IEnumerable<CloudItem>> UpdateChildren();
-
         [Browsable(false)]
         public ObservableCollection<CloudItem> Children
         {
             get
             {
-                return _children;
+                return this.children;
             }
-        }
-
-        [Browsable(false)]
-        protected abstract IEnumerable<CloudItemAction> MenuActions
-        {
-            get;
         }
 
         [Browsable(false)]
@@ -193,7 +133,7 @@ namespace CloudFoundry.VisualStudio.Model
 
                 if (this.HasRefresh)
                 {
-                    result.Add(new CloudItemAction(this, "Refresh", Resources.Refresh, RefreshChildren));
+                    result.Add(new CloudItemAction(this, "Refresh", Resources.Refresh, this.RefreshChildren));
                     if (menuAction != null && menuAction.Count() > 0)
                     {
                         result.Add(new CloudItemAction(this, "-", null, () => { return Task.Delay(0); }));
@@ -219,15 +159,204 @@ namespace CloudFoundry.VisualStudio.Model
             }
         }
 
-        private void NotifyPropertyChanged(string propertyName)
+        protected bool HasRefresh
         {
-            if (PropertyChanged != null)
+            get
             {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+                return this.cloudItemType != CloudItemType.LoadingPlaceholder &&
+                    this.cloudItemType != CloudItemType.AppFile &&
+                    this.cloudItemType != CloudItemType.Route &&
+                    this.cloudItemType != CloudItemType.Service &&
+                    this.cloudItemType != CloudItemType.Error;
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        private bool executingBackgroundAction;
+        protected bool IsEnabled
+        {
+            get
+            {
+                return this.isEnabled;
+            }
+
+            set
+            {
+                this.isEnabled = value;
+                this.NotifyPropertyChanged("IsEnabled");
+            }
+        }
+
+        protected abstract Bitmap IconBitmap
+        {
+            get;
+        }
+
+        [Browsable(false)]
+        protected abstract IEnumerable<CloudItemAction> MenuActions
+        {
+            get;
+        }
+
+        public async Task RefreshChildren()
+        {
+            this.ExecutingBackgroundAction = true;
+            var populateChildrenTask = this.UpdateChildren();
+            this.cancellationToken = new System.Threading.CancellationToken();
+
+            await populateChildrenTask.ContinueWith((antecedent) =>
+            {
+                lock (this.childRefreshLock)
+                {
+                    if (antecedent.IsFaulted)
+                    {
+                        OnUIThread(() => children.Clear());
+
+                        CloudError error = new CloudError(antecedent.Exception);
+
+                        OnUIThread(() => children.Add(error));
+                    }
+                    else
+                    {
+                        OnUIThread(() => children.Clear());
+
+                        foreach (var child in antecedent.Result)
+                        {
+                            OnUIThread(() => children.Add(child));
+
+                            child.AttachToParent(this);
+                        }
+
+                        wasRefreshed = true;
+                    }
+
+                    this.ExecutingBackgroundAction = false;
+                }
+            });
+        }
+
+        protected static HashSet<CloudItem> GetNodesWithConnection(CloudItem cloudItem, EntityGuid id)
+        {
+            HashSet<CloudItem> result = new HashSet<CloudItem>();
+
+            Type thisType = cloudItem.GetType();
+            var fields = thisType.GetFields(BindingFlags.Instance | BindingFlags.NonPublic);
+
+            foreach (var field in fields)
+            {
+                if (field.FieldType.Assembly.FullName.StartsWith("CloudFoundry.CloudController", StringComparison.OrdinalIgnoreCase))
+                {
+                    var value = field.GetValue(cloudItem);
+                    var collection = value as IEnumerable;
+                    if (collection != null)
+                    {
+                        foreach (var obj in collection)
+                        {
+                            if (ValueIsConnected(obj, id))
+                            {
+                                result.Add(cloudItem);
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (ValueIsConnected(value, id))
+                        {
+                            result.Add(cloudItem);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            foreach (var child in cloudItem.children)
+            {
+                foreach (var node in GetNodesWithConnection(child, id))
+                {
+                    result.Add(node);
+                }
+            }
+
+            return result;
+        }
+
+        protected static CloudItem GetRootItem(CloudItem ci)
+        {
+            if (ci.parent == null)
+            {
+                return ci;
+            }
+            else
+            {
+                return GetRootItem(ci.parent);
+            }
+        }
+
+        protected abstract Task<IEnumerable<CloudItem>> UpdateChildren();
+
+        protected void EnableNodes(EntityGuid entityID, bool enabled)
+        {
+            var rootItem = GetRootItem(this);
+            var nodesWithConnection = GetNodesWithConnection(rootItem, entityID);
+
+            foreach (var node in nodesWithConnection)
+            {
+                node.IsEnabled = enabled;
+            }
+        }
+
+        private static void OnUIThread(Action action)
+        {
+            Microsoft.VisualStudio.Shell.ThreadHelper.Generic.Invoke(action);
+        }
+
+        private static bool ValueIsConnected(object obj, EntityGuid id)
+        {
+            var entityMetadataProperty = obj.GetType().GetProperty("EntityMetadata");
+            if (entityMetadataProperty != null)
+            {
+                var meta = entityMetadataProperty.GetValue(obj) as Metadata;
+                if (meta != null)
+                {
+                    if ((Guid?)meta.Guid == (Guid?)id)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            var properties = obj.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public);
+
+            foreach (var property in properties)
+            {
+                var propertyValue = property.GetValue(obj);
+
+                if (propertyValue != null)
+                {
+                    var guidValue = propertyValue as Guid?;
+                    if (guidValue != null)
+                    {
+                        if ((Guid?)guidValue == (Guid?)id)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private void AttachToParent(CloudItem parentItem)
+        {
+            this.parent = parentItem;
+        }
+
+        private void NotifyPropertyChanged(string propertyName)
+        {
+            if (this.PropertyChanged != null)
+            {
+                this.PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
     }
 }

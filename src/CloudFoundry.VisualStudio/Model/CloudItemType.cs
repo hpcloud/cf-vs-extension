@@ -1,5 +1,4 @@
-﻿
-namespace CloudFoundry.VisualStudio
+﻿namespace CloudFoundry.VisualStudio
 {
     internal enum CloudItemType
     {
@@ -7,6 +6,9 @@ namespace CloudFoundry.VisualStudio
         Organization,
         Space,
         AppsCollection,
+        InstancesCollection,
+        AppFile,
+        AppFolder,
         ServicesCollection,
         RoutesCollection,
         App,

@@ -1,21 +1,20 @@
-﻿using System.Collections;
-using System.ComponentModel;
-using System.Linq;
-using System.Reflection;
-using CloudFoundry.VisualStudio.Forms;
-using CloudFoundry.VisualStudio.Model;
-using CloudFoundry.VisualStudio.TargetStore;
-using Microsoft.VisualStudio.Shell;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using Microsoft.VisualStudio.Threading;
-
-namespace CloudFoundry.VisualStudio
+﻿namespace CloudFoundry.VisualStudio
 {
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Linq;
+    using System.Reflection;
+    using System.Windows;
+    using System.Windows.Controls;
+    using System.Windows.Input;
+    using CloudFoundry.VisualStudio.Forms;
+    using CloudFoundry.VisualStudio.Model;
+    using CloudFoundry.VisualStudio.TargetStore;
+    using Microsoft.VisualStudio.Shell;
+    using Microsoft.VisualStudio.Threading;
+    using Xceed.Wpf.Toolkit;
+
     /// <summary>
     /// Interaction logic for MyControl.xaml
     /// </summary>
@@ -23,12 +22,42 @@ namespace CloudFoundry.VisualStudio
     {
         public CloudFoundryExplorer()
         {
-            InitializeComponent();
-            ReloadTargets();
+            this.InitializeComponent();
+            this.ReloadTargets();
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1300:SpecifyMessageBoxOptions")]
-        private void treeMenuItem_Click(object sender, RoutedEventArgs e)
+        private static SortedList<string, object> GetItemList(CloudItem item)
+        {
+            var list = new SortedList<string, object>();
+            if (item == null)
+            {
+                return list;
+            }
+
+            PropertyInfo[] properties = item.GetType().GetProperties();
+            foreach (PropertyInfo pi in properties)
+            {
+                var browsable = pi.GetCustomAttribute<BrowsableAttribute>();
+                if ((browsable != null) && (!browsable.Browsable))
+                {
+                    continue;
+                }
+
+                var displayName = pi.GetCustomAttribute<DisplayNameAttribute>();
+                if (displayName != null)
+                {
+                    list.Add(displayName.DisplayName, pi.GetValue(item, null));
+                }
+                else
+                {
+                    list.Add(pi.Name, pi.GetValue(item, null));
+                }
+            }
+
+            return list;
+        }
+
+        private void TreeMenuItem_Click(object sender, RoutedEventArgs e)
         {
             var menuItem = sender as MenuItem;
 
@@ -69,6 +98,7 @@ namespace CloudFoundry.VisualStudio
                                 {
                                     await cloudItemAction.CloudItem.Parent.RefreshChildren();
                                 }
+
                                 break;
                             case CloudItemActionContinuation.None:
                             default:
@@ -100,24 +130,23 @@ namespace CloudFoundry.VisualStudio
 
         private void AddTargetButton_Click(object sender, RoutedEventArgs e)
         {
-            using (var loginForm = new LoginWizardForm())
+            var loginForm = new LogOnForm();
+
+            var result = loginForm.ShowDialog();
+
+            if (result == true)
             {
-                var result = loginForm.ShowDialog();
+                var target = loginForm.CloudTarget;
 
-                if (result == System.Windows.Forms.DialogResult.OK)
+                if (target != null)
                 {
-                    var target = loginForm.CloudTarget;
+                    CloudTargetManager.SaveTarget(target);
+                    CloudCredentialsManager.Save(target.TargetUrl, target.Email, loginForm.Credentials.Password);
 
-                    if (target != null)
-                    {
-                        CloudTargetManager.SaveTarget(target);
-                        CloudCredentialsManager.Save(target.TargetUrl, target.Email, loginForm.Password);
-                        ReloadTargets();
-                    }
+                    this.ReloadTargets();
                 }
             }
         }
-
 
         private void ReloadTargets()
         {
@@ -139,34 +168,6 @@ namespace CloudFoundry.VisualStudio
             {
                 selectedItem.RefreshChildren().Forget();
             }
-        }
-
-        private SortedList<string, object> GetItemList(CloudItem item)
-        {
-            var list = new SortedList<string, object>();
-            if (item == null)
-            {
-                return list;
-            }
-
-            PropertyInfo[] properties = item.GetType().GetProperties();
-            foreach (PropertyInfo pi in properties)
-            {
-                var browsable = pi.GetCustomAttribute<BrowsableAttribute>();
-                if ((browsable != null) && (!browsable.Browsable)) continue;
-
-                var displayName = pi.GetCustomAttribute<DisplayNameAttribute>();
-                if (displayName != null)
-                {
-                    list.Add(displayName.DisplayName, pi.GetValue(item, null));
-                }
-                else
-                {
-                    list.Add(pi.Name, pi.GetValue(item, null));
-                }
-            }
-
-            return list;
         }
 
         private void OnSortClick(object sender, RoutedEventArgs e)

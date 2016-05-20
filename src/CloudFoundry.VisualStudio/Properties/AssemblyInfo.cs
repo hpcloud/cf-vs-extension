@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("CloudFoundry.VisualStudio")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Cloud Foundry Foundation")]
+[assembly: AssemblyCompany("Hewlett-Packard Development Company, L.P.")]
 [assembly: AssemblyProduct("CloudFoundry.VisualStudio")]
 [assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
@@ -27,10 +27,12 @@ using System.Runtime.InteropServices;
 //      Revision
 //
 // You can specify all the values or you can default the Revision and Build Numbers 
-// by using the '*' as shown below:
+//// by using the '*' as shown below:
 
 [assembly: AssemblyVersion("1.2.0.1")]
 [assembly: AssemblyFileVersion("1.2.0.1")]
 
 [assembly: InternalsVisibleTo("CloudFoundry.VisualStudio.IntegrationTests")]
-[assembly: InternalsVisibleTo("CloudFoundry.VisualStudio.UnitTestss")]
+[assembly: InternalsVisibleTo("CloudFoundry.VisualStudio.UnitTests")]
+[assembly: InternalsVisibleTo("CloudFoundry.VisualStudio.TestApp")]
+[assembly: System.Windows.ThemeInfo(System.Windows.ResourceDictionaryLocation.None, System.Windows.ResourceDictionaryLocation.SourceAssembly)]

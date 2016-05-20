@@ -11,7 +11,10 @@
 
   /t:UnitTest
     Runs unit tests
-    
+
+  /t:IntegrationTest
+    Runs integration tests
+
   /t:RestoreNugetPackages
     Restores nuget packages
     
@@ -27,6 +30,7 @@
     <PackageOutputDir>$(BinariesFolder)\packages</PackageOutputDir>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <NugetRepo>https://www.nuget.org/api/v2/</NugetRepo>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -71,7 +75,7 @@
   <!-- Target for running unit tests -->
   <Target Name="UnitTest">
     <ItemGroup>
-      <TestDlls Include=".\src\CloudFoundry.VisualStudio.UnitTests\bin\$(Configuration)\CloudFoundry.VisualStudio.UnitTests.dll"/>
+      <TestDlls Include=".\src\CloudFoundry.VisualStudio.UnitTests\bin\x86\$(Configuration)\CloudFoundry.VisualStudio.UnitTests.dll"/>
     </ItemGroup>
 
     <Exec Command="$(VSTestCommand) %(TestDlls.Identity) /inIsolation /settings:CodeCoverage.runsettings /logger:trx"  ConsoleToMSBuild="true">
@@ -99,19 +103,32 @@
     <Exec Command="$(ReportGeneratorCommand) -reports:&quot;$(CoverageXml)&quot; -targetdir:&quot;$(CoverageHtmlDir)&quot;" />
   </Target>
 
+  <!-- Target for running unit tests -->
+  <Target Name="IntegrationTest">
+    <ItemGroup>
+      <TestDlls Include=".\src\CloudFoundry.VisualStudio.IntegrationTests\bin\x86\$(Configuration)\CloudFoundry.VisualStudio.IntegrationTests.dll"/>
+    </ItemGroup>
+
+    <Exec Command="$(VSTestCommand) %(TestDlls.Identity) /inIsolation /settings:Integration.runsettings /logger:trx"  ConsoleToMSBuild="true">
+      <Output TaskParameter="ExitCode" PropertyName="ErrorCode"/>
+      <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfTestRun" />
+    </Exec>
+  </Target>
+  
   <!-- Target for restoring nuget packages -->
   <Target Name="RestoreNugetPackages">
-    <Exec Command="$(NuGetCommand) restore $(VSExtensionSolution)"/>
+    <Exec Command="$(NuGetCommand) restore $(VSExtensionSolution) -source $(NugetRepo)"/>
   </Target>
 
   <!-- Target for automatically versioning the assemblies -->
   <Target Name="Versioning">
     <Message Text="Version: $(version)" />
-
+	
     <ItemGroup>
       <AssemblyInfoFiles Include="$(LibraryRoot)\src\CloudFoundry.VisualStudio\Properties\AssemblyInfo.cs"/>
     </ItemGroup>
-
+	<XmlPoke Condition="'$(version)' != ''" XmlInputPath=".\src\CloudFoundry.VisualStudio\source.extension.vsixmanifest"   Query="/n:PackageManifest/n:Metadata/n:Identity/@Version" Value="$(version)"
+	Namespaces="&lt;Namespace Prefix='n' Uri='http://schemas.microsoft.com/developer/vsx-schema/2011' /&gt;" />
     <MSBuild.ExtensionPack.Framework.AssemblyInfo AssemblyInfoFiles="@(AssemblyInfoFiles)"
       AssemblyVersion="$(version)"
       AssemblyFileVersion="$(version)" />

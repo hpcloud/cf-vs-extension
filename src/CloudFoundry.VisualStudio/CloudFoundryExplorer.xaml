@@ -14,7 +14,7 @@
     <UserControl.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Style/ListViewStyle.xaml" />
+                <ResourceDictionary Source="Style\ListViewStyle.xaml" />
                 <ResourceDictionary Source="Style\TreeViewStyle.xaml" />
                 <ResourceDictionary Source="Style\ButtonStyle.xaml" />
                 <ResourceDictionary Source="Style\ToggleButtonStyle.xaml" />
@@ -24,10 +24,10 @@
                 <ResourceDictionary Source="Style\Images.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <converters:IsNullConverter x:Key="IsNull"/>
-            <converters:VisiblityConverter x:Key="Visible" Reversed="False"/>
+            <converters:VisibilityConverter x:Key="Visible" Reversed="False"/>
             
             <Style TargetType="MenuItem" x:Key="MenuItemEventStyle" >
-                <EventSetter Event="Click" Handler="treeMenuItem_Click" />
+                <EventSetter Event="Click" Handler="TreeMenuItem_Click" />
             </Style>
         </ResourceDictionary>
     </UserControl.Resources>
@@ -42,12 +42,14 @@
 
 
         <StackPanel Grid.Row="0" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Orientation="Horizontal">
-            <Button Name="RefreshButton" Height="22" Width="22" Click="RefreshButton_Click">
-                <Image Source="{StaticResource RefreshImage}" />
+            <Button Name="RefreshButton" Height="22" Width="22" Click="RefreshButton_Click"
+                    BorderThickness="0">
+                <Image Stretch="None" Source="{StaticResource RefreshImage}" />
             </Button>
 
-            <Button Name="AddTargetButton" Height="22" Width="22" Click="AddTargetButton_Click">
-                <Image Source="{StaticResource AddImage}" />
+            <Button Name="AddTargetButton" Height="22" Width="22" Click="AddTargetButton_Click"
+                    BorderThickness="0" Margin="3,0,0,0">
+                <Image Stretch="None" Source="{StaticResource AddImage}" />
             </Button>
         </StackPanel>
 
@@ -55,7 +57,7 @@
               DataContext="{Binding SelectedValue, ElementName=ExplorerTree}">
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type model:CloudItem}" ItemsSource="{Binding Children}">
-                    <StackPanel Orientation="Horizontal" Height="22">
+                    <StackPanel Orientation="Horizontal" Height="22" >
                         <Grid Width="16" Height="16" VerticalAlignment="Center" Margin="5,0,0,0">
                             <Image Source="{Binding Icon}" />
                             <Image Source="{StaticResource SynchronizeSmallImage}" 
@@ -79,13 +81,14 @@
                         <DataTrigger Binding="{Binding Actions, Converter={StaticResource IsNull}}" Value="False">
                             <Setter Property="ContextMenu">
                                 <Setter.Value>
-                                    <ContextMenu ItemsSource="{Binding Actions}" Name="pelerinul">
+                                    <ContextMenu ItemsSource="{Binding Actions}" >
                                         <ContextMenu.ItemContainerStyle>
                                             <Style TargetType="{x:Type MenuItem}" BasedOn="{StaticResource MenuItemEventStyle}">
                                                 <Setter Property="Tag" Value="{Binding}"/>
                                                 <Setter Property="Header" Value="{Binding Text}"/>
                                                 <Setter Property="Icon" Value="{Binding Icon}"/>
-
+                                                <Setter Property="IsEnabled" Value ="{Binding CloudItem.IsEnabled}"/>
+                                                
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding Text}" Value="-">
                                                         <Setter Property="Template">

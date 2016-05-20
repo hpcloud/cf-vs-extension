@@ -1,9 +1,9 @@
-﻿using Microsoft.VisualStudio.Shell;
-using System;
-using System.Runtime.InteropServices;
-
-namespace CloudFoundry.VisualStudio
+﻿namespace CloudFoundry.VisualStudio
 {
+    using System;
+    using System.Runtime.InteropServices;
+    using Microsoft.VisualStudio.Shell;
+
     /// <summary>
     /// This class implements the tool window exposed by this package and hosts a user control.
     ///
@@ -16,6 +16,8 @@ namespace CloudFoundry.VisualStudio
     [Guid("df775e32-5655-486d-a7c3-a2c69ca39c1f")]
     public class CloudFoundryExplorerToolWindow : ToolWindowPane
     {
+        private object content;
+
         /// <summary>
         /// Standard constructor for the tool window.
         /// </summary
@@ -24,7 +26,7 @@ namespace CloudFoundry.VisualStudio
         {
             // Set the window title reading it from the resources.
             this.Caption = Resources.ToolWindowTitle;
-            // Set the image that will appear on the tab of the window frame
+            //// Set the image that will appear on the tab of the window frame
             // when docked with an other window
             // The resource ID correspond to the one defined in the resx file
             // while the Index is the offset in the bitmap strip. Each image in
@@ -35,7 +37,20 @@ namespace CloudFoundry.VisualStudio
             // This is the user control hosted by the tool window; Note that, even if this class implements IDisposable,
             // we are not calling Dispose on this object. This is because ToolWindowPane calls Dispose on 
             // the object returned by the Content property.
-            base.Content = new CloudFoundryExplorer();
+            this.content = new CloudFoundryExplorer();
+        }
+
+        public override object Content
+        {
+            get
+            {
+                return this.content;
+            }
+
+            set
+            {
+                this.content = value;
+            }
         }
     }
 }

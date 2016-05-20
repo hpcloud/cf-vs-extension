@@ -1,15 +1,4 @@
-﻿/***************************************************************************
-
-Copyright (c) Microsoft Corporation. All rights reserved.
-This code is licensed under the Visual Studio SDK license terms.
-THIS CODE IS PROVIDED *AS IS* WITHOUT WARRANTY OF
-ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING ANY
-IMPLIED WARRANTIES OF FITNESS FOR A PARTICULAR
-PURPOSE, MERCHANTABILITY, OR NON-INFRINGEMENT.
-
-***************************************************************************/
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Text;
 using System.Reflection;
@@ -17,8 +6,9 @@ using Microsoft.VsSDK.UnitTestLibrary;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using CloudFoundry.VisualStudio;
+using CloudFoundry.VisualStudio_UnitTests.MyToolWindowTest;
 
-namespace CloudFoundry.VisualStudio_UnitTests
+namespace CloudFoundry.VisualStudio.UnitTests
 {
     [TestClass()]
     public class PackageTest
@@ -26,13 +16,13 @@ namespace CloudFoundry.VisualStudio_UnitTests
         [TestMethod()]
         public void CreateInstance()
         {
-            CloudFoundry_VisualStudioPackage package = new CloudFoundry_VisualStudioPackage();
+            CloudFoundryVisualStudioPackage package = new CloudFoundryVisualStudioPackage();
         }
 
         [TestMethod()]
         public void IsIVsPackage()
         {
-            CloudFoundry_VisualStudioPackage package = new CloudFoundry_VisualStudioPackage();
+            CloudFoundryVisualStudioPackage package = new CloudFoundryVisualStudioPackage();
             Assert.IsNotNull(package as IVsPackage, "The object does not implement IVsPackage");
         }
 
@@ -40,11 +30,19 @@ namespace CloudFoundry.VisualStudio_UnitTests
         public void SetSite()
         {
             // Create the package
-            IVsPackage package = new CloudFoundry_VisualStudioPackage() as IVsPackage;
+            IVsPackage package = new CloudFoundryVisualStudioPackage() as IVsPackage;
             Assert.IsNotNull(package, "The object does not implement IVsPackage");
 
             // Create a basic service provider
             OleServiceProvider serviceProvider = OleServiceProvider.CreateOleServiceProviderWithBasicServices();
+
+            // Add site support for activity log
+            BaseMock activityLogMock = new GenericMockFactory("MockVsActivityLog", new[] { typeof(Microsoft.VisualStudio.Shell.Interop.IVsActivityLog) }).GetInstance();
+            serviceProvider.AddService(typeof(Microsoft.VisualStudio.Shell.Interop.SVsActivityLog), activityLogMock, true);
+
+            // Add site support to register editor factory
+            BaseMock registerEditor = RegisterEditorMock.GetRegisterEditorsInstance();
+            serviceProvider.AddService(typeof(SVsRegisterEditors), registerEditor, false);
 
             // Site the package
             Assert.AreEqual(0, package.SetSite(serviceProvider), "SetSite did not return S_OK");

@@ -1,0 +1,91 @@
+﻿<UserControl x:Class="CloudFoundry.VisualStudio.Controls.AppSettingsUserControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converters="clr-namespace:CloudFoundry.VisualStudio.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="450">
+    <Control.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="..\Style\Controls.xaml" />
+                <ResourceDictionary Source="..\Style\Images.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            
+            <Thickness x:Key="DefaultMargin" Top="0" Bottom="5" Left="0" Right="0"></Thickness>
+
+            <converters:VisibilityConverter x:Key="Visibility" />
+            <converters:InverseBooleanConverter x:Key="InverseBoolean"/>
+            <converters:BooleanAndConverter x:Key="BooleanAnd"/>
+        </ResourceDictionary>
+    </Control.Resources>
+    <Grid VerticalAlignment="Top">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="20" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="50" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="50"/>
+        </Grid.ColumnDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="1" Content="Name" />
+        <TextBox Grid.Row="1" Grid.Column="1" Name="tbName" 
+                 Text="{Binding SelectedPublishProfile.Application.Name}" />
+
+        <Label Grid.Row="2" Grid.Column="1" Content="Buildpack" />
+
+        <Image Grid.Row="3" Grid.Column="0" Stretch="Fill" HorizontalAlignment="Right" 
+               Source="{StaticResource LoadingImage}" Margin="0,0,5,0" Style="{StaticResource Spinner}"
+               Visibility="{Binding Path=RefreshingBuildpacks, Converter={StaticResource Visibility}}">
+        </Image>
+
+        <ComboBox Grid.Row="3" Grid.Column="1" IsEditable="True"  Name="cbBuildpack"  
+                  ItemsSource="{Binding Buildpacks}" 
+                  Text="{Binding SelectedBuildpack}"
+                  SelectedValuePath="Name" DisplayMemberPath="Name" IsEnabled="{Binding Path=RefreshingBuildpacks, Converter={StaticResource InverseBoolean}}" TextBoxBase.TextChanged="CbBuildpack_TextChanged">
+        </ComboBox>
+
+        <TextBlock Grid.Row="3" Grid.Column="1" Margin="3" FontStyle="Italic" Name="tbBuildpackWatermark" Text="&lt;&lt;Auto-Detect&gt;&gt;" IsHitTestVisible="False">
+        </TextBlock>
+
+        
+        <Label Grid.Row="4" Grid.Column="1" Content="Stack" />
+
+        <Image Grid.Row="5" Grid.Column="0" Stretch="Fill" HorizontalAlignment="Right" 
+               Source="{StaticResource LoadingImage}" Margin="0,0,5,0" Style="{StaticResource Spinner}"
+               Visibility="{Binding Path=RefreshingStacks, Converter={StaticResource Visibility}}">
+        </Image>
+
+        <ComboBox Grid.Row="5" Grid.Column="1" Name="cbStack" 
+                  ItemsSource="{Binding Stacks}"
+                  SelectedValue="{Binding SelectedStack}"
+                  SelectedValuePath="Name" DisplayMemberPath="Name" IsEnabled="{Binding Path=RefreshingStacks, Converter={StaticResource InverseBoolean}}" />
+
+        <Label Grid.Row="6" Grid.Column="1" Content="Memory (MB)" />
+        <TextBox Grid.Row="7" Grid.Column="1" Name="tbMemory" 
+                 Text="{Binding SelectedPublishProfile.Application.Memory}" />
+
+        <Label Grid.Row="8" Grid.Column="1" Content="Instances" />
+        <TextBox Grid.Row="9" Grid.Column="1" Name="tbInstances"
+                 Text="{Binding SelectedPublishProfile.Application.InstanceCount}" />
+
+        <TextBox Grid.Row="10" Grid.Column="1" Grid.ColumnSpan="2" IsReadOnly="True" TextWrapping="Wrap"
+                 BorderBrush="Transparent" ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 Foreground="Crimson" MinLines="4" MaxLines="4" Background="Transparent"
+                 Text="{Binding Path=Error.ErrorMessage}" 
+                 Visibility="{Binding Path=Error.HasErrors, Converter={StaticResource Visibility}}"/>
+    </Grid>
+</UserControl>

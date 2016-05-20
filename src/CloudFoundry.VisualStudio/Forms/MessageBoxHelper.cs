@@ -7,10 +7,6 @@
 namespace CloudFoundry.VisualStudio.Forms
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Diagnostics;
     using System.Windows.Forms;
     using Microsoft.VisualStudio.Shell;
 
@@ -23,7 +19,7 @@ namespace CloudFoundry.VisualStudio.Forms
         {
             return ThreadHelper.Generic.Invoke<DialogResult>(() =>
             {
-                return MessageBox.Show(message, Logger.EventSource, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return MessageBox.Show(message, Logger.EventSource, MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
             });
         }
 
@@ -31,7 +27,7 @@ namespace CloudFoundry.VisualStudio.Forms
         {
             return ThreadHelper.Generic.Invoke<DialogResult>(() =>
             {
-                return MessageBox.Show(ex.Message, Logger.EventSource, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return MessageBox.Show(ex.Message, Logger.EventSource, MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
             });
         }
 
@@ -39,7 +35,7 @@ namespace CloudFoundry.VisualStudio.Forms
         {
             return ThreadHelper.Generic.Invoke<DialogResult>(() =>
             {
-                return MessageBox.Show(message + "\r\n\r\n" + ex.Message, Logger.EventSource, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return MessageBox.Show(message + "\r\n\r\n" + ex.Message, Logger.EventSource, MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
             });
         }
 
@@ -47,7 +43,7 @@ namespace CloudFoundry.VisualStudio.Forms
         {
             return ThreadHelper.Generic.Invoke<DialogResult>(() =>
             {
-                return MessageBox.Show(message, Logger.EventSource, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return MessageBox.Show(message, Logger.EventSource, MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
             });
         }
 
@@ -55,7 +51,7 @@ namespace CloudFoundry.VisualStudio.Forms
         {
             return ThreadHelper.Generic.Invoke<DialogResult>(() =>
             {
-                return MessageBox.Show(message + "\r\n\r\n" + ex.ToString(), Logger.EventSource, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return MessageBox.Show(message + "\r\n\r\n" + ex.ToString(), Logger.EventSource, MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
             });
         }
 
@@ -63,7 +59,7 @@ namespace CloudFoundry.VisualStudio.Forms
         {
             return ThreadHelper.Generic.Invoke<DialogResult>(() =>
             {
-                return MessageBox.Show(ex.ToString(), Logger.EventSource, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return MessageBox.Show(ex.ToString(), Logger.EventSource, MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
             });
         }
 
@@ -71,7 +67,7 @@ namespace CloudFoundry.VisualStudio.Forms
         {
             return ThreadHelper.Generic.Invoke<DialogResult>(() =>
             {
-                return MessageBox.Show(message, Logger.EventSource, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return MessageBox.Show(message, Logger.EventSource, MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
             });
         }
 
@@ -79,7 +75,7 @@ namespace CloudFoundry.VisualStudio.Forms
         {
             return ThreadHelper.Generic.Invoke<DialogResult>(() =>
             {
-                return MessageBox.Show(message, Logger.EventSource, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return MessageBox.Show(message, Logger.EventSource, MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
             });
         }
 
@@ -87,9 +83,8 @@ namespace CloudFoundry.VisualStudio.Forms
         {
             return ThreadHelper.Generic.Invoke<DialogResult>(() =>
             {
-                return MessageBox.Show(message, Logger.EventSource, MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                return MessageBox.Show(message, Logger.EventSource, MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
             });
         }
-
     }
 }
