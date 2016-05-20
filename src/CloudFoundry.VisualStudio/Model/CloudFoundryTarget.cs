@@ -30,7 +30,7 @@
             get { return this.target.TargetUrl; }
         }
 
-        [Description("Username of the Cloud Foundry User")]
+        [Description("Username of the Stackato User")]
         public string Username
         {
             get { return this.target.Email; }
@@ -42,7 +42,7 @@
             get { return this.target.Version; }
         }
 
-        [Description("Indicates if the SSL errors are ignored for the Cloud Foundry Target")]
+        [Description("Indicates if the SSL errors are ignored for the Stackato Target")]
         [DisplayName("Ignore SSL errors")]
         public bool IgnoreSSLErrors
         {

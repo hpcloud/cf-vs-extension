@@ -405,7 +405,7 @@
                     xmlWriter.WriteStartElement("Project", "http://schemas.microsoft.com/developer/msbuild/2003");
                     xmlWriter.WriteAttributeString("ToolsVersion", "4.0");
 
-                    // Import cf-msbuild-tasks
+                    // Import stackato-msbuild-tasks
                     xmlWriter.WriteStartElement("Import");
                     xmlWriter.WriteAttributeString("Project", this.environment.TargetFilePath);
                     xmlWriter.WriteEndElement();

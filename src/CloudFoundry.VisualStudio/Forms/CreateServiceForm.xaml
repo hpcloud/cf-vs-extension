@@ -22,7 +22,7 @@
                  CancelButtonClosesWindow="False" Cancel="Wizard_Cancel" FinishButtonContent="OK" FinishButtonClosesWindow="False" Finish="Wizard_Finish">
 
         <xctk:WizardPage x:Name="CreateServicePage" PageType= "Interior"
-                         Title="Create Cloud Foundry Service Instance" CanFinish="{Binding AllowFinish}">
+                         Title="Create Stackato Service Instance" CanFinish="{Binding AllowFinish}">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>

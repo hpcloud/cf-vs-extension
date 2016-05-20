@@ -56,7 +56,7 @@
 
     public sealed class CloudFoundryVisualStudioPackage : Package
     {
-        public const string PackageId = "cf-msbuild-tasks";
+        public const string PackageId = "stackato-msbuild-tasks";
 
         private static ErrorListProvider errorList;
 
@@ -151,7 +151,7 @@
                 else
                 {
                     commandInfo.Visible = true;
-                    commandInfo.Text = "Publish to Cloud Foundry";
+                    commandInfo.Text = "Publish to Stackato";
                 }
             }
         }

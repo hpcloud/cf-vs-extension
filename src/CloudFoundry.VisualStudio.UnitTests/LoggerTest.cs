@@ -106,7 +106,7 @@ namespace CloudFoundry.VisualStudio.UnitTests
             string message = "test error message";
             Boolean success = false;
 
-            string testLogName = EventLog.LogNameFromSourceName("Cloud Foundry Helion Visual Studio Extension", ".");
+            string testLogName = EventLog.LogNameFromSourceName("Stackato Helion Visual Studio Extension", ".");
             EventLog testLog = new EventLog();
             testLog.Log = testLogName;
             EventLogEntryCollection testLogEntryCollection = testLog.Entries;

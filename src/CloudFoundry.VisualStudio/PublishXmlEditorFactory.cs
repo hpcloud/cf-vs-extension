@@ -22,7 +22,7 @@
             ppunkDocView = IntPtr.Zero;
             pguidCmdUI = new Guid("41d526d3-6281-42ff-ba9f-e5746623233f");
             pgrfCDW = 0;
-            pbstrEditorCaption = "Cloud Foundry Publish Profile";
+            pbstrEditorCaption = "Stackato Publish Profile";
 
             var project = VsUtils.GetSelectedProject();
 

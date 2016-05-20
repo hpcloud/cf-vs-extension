@@ -714,7 +714,7 @@
                     {
                         throw new InvalidOperationException(@"Credentials are not configured correctly in your publish profile.
 Either set CFSavedPassword to true and use credentials saved in the Windows Credential Manager (recommended), or set a CFPassword or CFRefreshToken.
-Please note that credentials are saved automatically in the Windows Credential Manager if you use the Cloud Foundry Visual Studio Extensions to connect to a cloud.");
+Please note that credentials are saved automatically in the Windows Credential Manager if you use the Stackato Visual Studio Extensions to connect to a cloud.");
                     }
                 }
             }

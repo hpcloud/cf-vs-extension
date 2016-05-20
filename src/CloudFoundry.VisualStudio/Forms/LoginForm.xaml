@@ -6,7 +6,7 @@
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:converters="clr-namespace:CloudFoundry.VisualStudio.Converters"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d"  x:Class="CloudFoundry.VisualStudio.Forms.LogOnForm"
-        Title="Cloud Foundry target login" Style="{DynamicResource DialogWindowStyle}" Height="450" Width="500" WindowStartupLocation="CenterScreen">
+        Title="Stackato target login" Style="{DynamicResource DialogWindowStyle}" Height="450" Width="500" WindowStartupLocation="CenterScreen">
     <ui:DialogWindow.Resources>
         <ResourceDictionary>
 
@@ -19,7 +19,7 @@
         <xctk:Wizard NextButtonVisibility="Collapsed" BackButtonVisibility="Collapsed" HelpButtonVisibility="Collapsed" 
                  CancelButtonClosesWindow="False" FinishButtonContent="OK"  Cancel="Wizard_Cancel" FinishButtonClosesWindow="False" Finish="BtnFinish_Click">
         <xctk:WizardPage x:Name="TargetPage" PageType= "Interior"
-                         Title="Add Cloud Foundry Target" CanFinish="True">
+                         Title="Add Stackato Target" CanFinish="True">
             <Grid Margin="50,0,50,0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"></RowDefinition>

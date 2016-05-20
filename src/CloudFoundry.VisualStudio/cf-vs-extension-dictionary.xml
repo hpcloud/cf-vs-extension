@@ -6,6 +6,7 @@
 		  <Word>IgnoreSSLErrors</Word>
 		  <Word>Helion</Word>
 		  <Word>CloudFoundry</Word>
+		  <Word>Stackato</Word>
 		  <Word>DataContext</Word>
 		  <Word>PublishProfileEditorResources</Word>
 		  <Word>OneWay</Word>
@@ -13,6 +14,7 @@
 	  </Recognized>
 	  <DiscreteExceptions>
 		  <Term>CloudFoundry</Term>
+		  <Term>Stackato</Term>
 	  </DiscreteExceptions>
   </Words>
   <Acronyms>

@@ -9,7 +9,7 @@
         /// <summary>
         /// The process that generates the log entry message
         /// </summary>
-        public const string EventSource = "Cloud Foundry Helion Visual Studio Extension";
+        public const string EventSource = "Stackato Helion Visual Studio Extension";
 
         /// <summary>
         /// Logs an error message.
